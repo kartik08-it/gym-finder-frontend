@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import 'leaflet/dist/leaflet.css';
+
+:root {
+  --brand: #ff385c;
+  --ink: #0b0f14;
+  --ink-soft: #1a2029;
+  --muted: #8a94a6;
+}
+
+html, body { height: 100%; }
+
+body {
+  font-family: 'Manrope', system-ui, sans-serif;
+  color: var(--ink);
+  background: #fafafa;
+  -webkit-font-smoothing: antialiased;
+}
+
+.dark body { background: #0b0f14; color: #eef2f7; }
+
+::selection { background: var(--brand); color: white; }
+
+.glass {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+.dark .glass {
+  background: rgba(26, 32, 41, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
