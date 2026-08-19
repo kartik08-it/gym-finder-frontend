@@ -10,12 +10,14 @@ import { GymMap } from '@/components/map/gym-map';
 import { Skeleton } from '@/components/ui/card';
 import { useFilterStore } from '@/stores/filter.store';
 import { Button } from '@/components/ui/button';
-import { LayoutGrid, Map as MapIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LayoutGrid, Map as MapIcon } from 'lucide-react';
 
 function SearchPageContent() {
   const params = useSearchParams();
   const { filters, set } = useFilterStore();
   const [view, setView] = useState<'grid' | 'map'>('grid');
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(12);
 
   useEffect(() => {
     const q = params.get('q');
@@ -24,12 +26,28 @@ function SearchPageContent() {
     if (open_now) set({ open_now: true });
   }, [params, set]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [filters]);
+
   const { data, isLoading } = useQuery({
-    queryKey: ['gyms', filters],
-    queryFn: () => gymService.list(filters),
+    queryKey: ['gyms', filters, page, perPage],
+    queryFn: () => gymService.list({ ...filters, page, per_page: perPage }),
   });
 
   const items = (data as any)?.items ?? [];
+  const meta = (data as any)?.meta;
+  const currentPage = meta?.current_page ?? page;
+  const lastPage = meta?.last_page ?? 1;
+  const pageNumbers = Array.from({ length: lastPage }, (_, index) => index + 1).slice(
+    Math.max(0, currentPage - 3),
+    currentPage + 2,
+  );
+
+  function changePerPage(value: number) {
+    setPerPage(value);
+    setPage(1);
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
@@ -89,6 +107,59 @@ function SearchPageContent() {
           ) : (
             <GymMap gyms={items} height={640} />
           )}
+
+          <div className="mt-8 flex flex-col gap-4 border-t border-black/5 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <label className="flex items-center gap-2 text-sm text-ink-muted">
+              Gyms per page
+              <select
+                value={perPage}
+                onChange={(e) => changePerPage(Number(e.target.value))}
+                className="h-9 rounded-full border border-black/10 bg-white px-3 text-sm text-ink"
+                data-testid="per-page-select"
+              >
+                {[6, 12, 24, 48].map((size) => <option key={size} value={size}>{size}</option>)}
+              </select>
+            </label>
+
+            {lastPage > 1 && (
+              <nav className="flex items-center gap-1" aria-label="Gym results pagination">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setPage((current) => current - 1)}
+                  disabled={currentPage <= 1 || isLoading}
+                  aria-label="Previous page"
+                  data-testid="previous-page"
+                >
+                  <ChevronLeft size={16} />
+                </Button>
+                {pageNumbers.map((pageNumber) => (
+                  <Button
+                    key={pageNumber}
+                    variant={pageNumber === currentPage ? 'primary' : 'ghost'}
+                    size="icon"
+                    onClick={() => setPage(pageNumber)}
+                    disabled={isLoading}
+                    aria-label={`Page ${pageNumber}`}
+                    aria-current={pageNumber === currentPage ? 'page' : undefined}
+                    data-testid={`page-${pageNumber}`}
+                  >
+                    {pageNumber}
+                  </Button>
+                ))}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setPage((current) => current + 1)}
+                  disabled={currentPage >= lastPage || isLoading}
+                  aria-label="Next page"
+                  data-testid="next-page"
+                >
+                  <ChevronRight size={16} />
+                </Button>
+              </nav>
+            )}
+          </div>
         </div>
       </div>
     </div>
