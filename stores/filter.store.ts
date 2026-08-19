@@ -8,7 +8,7 @@ interface FiltersState {
 }
 
 export const useFilterStore = create<FiltersState>((set) => ({
-  filters: { sort: 'rating', per_page: 12 },
+  filters: { sort: 'rating' },
   set: (patch) => set((s) => ({ filters: { ...s.filters, ...patch } })),
-  reset: () => set({ filters: { sort: 'rating', per_page: 12 } }),
+  reset: () => set({ filters: { sort: 'rating' } }),
 }));
